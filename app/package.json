@@ -9,8 +9,13 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "express": "^4.19.2",
-    "prom-client": "^14.2.0"
+    "express-rate-limit": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "nedb-promises": "^6.2.3",
+    "prom-client": "^14.2.0",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "eslint": "^8.57.0",

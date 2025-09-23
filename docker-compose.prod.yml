@@ -2,7 +2,9 @@ services:
   app:
     build: .
     image: devops-starter:prod
-    ports:
-      - "8082:8080"   # host 8082 → container 8080
+    ports: ["8082:8080"]
     environment:
       - NODE_ENV=production
+      - JWT_SECRET=changeme-prod
+    volumes:
+      - ./data:/app/data
