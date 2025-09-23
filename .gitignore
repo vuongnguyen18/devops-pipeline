@@ -1,0 +1,22 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+coverage/
+app/coverage/
+app/.nyc_output/
+package-lock.json
+
+# OS
+.DS_Store
+
+# Docker
+*.tgz
+*.tar
+dist/
+
+# Jenkins
+build.json
+release-notes.txt

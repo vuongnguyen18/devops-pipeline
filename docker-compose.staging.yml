@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: devops-starter:staging
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=staging
