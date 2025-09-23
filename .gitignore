@@ -7,7 +7,6 @@ yarn-error.log*
 coverage/
 app/coverage/
 app/.nyc_output/
-package-lock.json
 
 # OS
 .DS_Store
