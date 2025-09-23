@@ -1,3 +1,5 @@
+environment { STAGING_PORT = '8081' } 
+
 pipeline {
   agent any
   options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
@@ -36,7 +38,7 @@ pipeline {
     stage('Deploy: Staging (Compose)') {
       steps {
         sh 'docker compose -f docker-compose.staging.yml up -d --build --remove-orphans'
-        sh './scripts/smoke_test.sh http://localhost:8080/health 30'
+        sh './scripts/smoke_test.sh http://localhost:${STAGING_PORT}/health 30'
       }
     }
     stage('Placeholders (Quality & Security)') {
