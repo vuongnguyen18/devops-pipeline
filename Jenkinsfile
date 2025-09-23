@@ -1,6 +1,6 @@
 pipeline {
   agent any
-  options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
+  options { timestamps(); disableConcurrentBuilds() }
 
   parameters {
     booleanParam(name: 'USE_DOCKER',   defaultValue: true,  description: 'Build, compose, and deploy containers')
@@ -11,7 +11,6 @@ pipeline {
   environment {
     STAGING_PORT = '8081'   // host port mapped to container 8080
     PROD_PORT    = '8082'   // host port for prod compose
-    // Optional: set these in Jenkins → Manage Credentials or pass as env
     SONAR_HOST_URL = ''     // e.g., http://localhost:9000
     SONAR_TOKEN    = ''     // create in Sonar → My Account → Tokens
   }
