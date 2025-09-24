@@ -69,6 +69,63 @@ pipeline {
   }
 }
 
+// ---------- Security: Trivy FS (deps + misconfig + secrets) ----------
+stage('Security: Trivy (FS)') {
+  steps {
+    // Create a cache dir so Trivy doesn't redownload DB every run
+    bat "if not exist .trivy-cache mkdir .trivy-cache"
+
+    bat """
+    docker run --rm ^
+      -v "%cd%":/src ^
+      -v "%cd%\\.trivy-cache":/root/.cache/trivy ^
+      aquasec/trivy:0.54.1 fs /src ^
+      --scanners vuln,misconfig,secret ^
+      --ignore-unfixed ^
+      --severity HIGH,CRITICAL ^
+      --format table ^
+      --output /src/trivy-fs.txt ^
+      --exit-code 1
+    """
+  }
+  post { always { archiveArtifacts artifacts: 'trivy-fs.txt', onlyIfSuccessful: false } }
+}
+
+// ---------- Security: Trivy Image (container vuln scan) ----------
+stage('Security: Trivy (Image)') {
+  steps {
+    // NOTE: Docker Desktop on Windows → use the `//var/run/docker.sock` bind
+    bat """
+    docker run --rm ^
+      -v //var/run/docker.sock:/var/run/docker.sock ^
+      -v "%cd%\\.trivy-cache":/root/.cache/trivy ^
+      -v "%cd%":/out ^
+      aquasec/trivy:0.54.1 image devops-starter:staging ^
+      --ignore-unfixed ^
+      --severity HIGH,CRITICAL ^
+      --format table ^
+      --output /out/trivy-image.txt ^
+      --exit-code 1
+    """
+  }
+  post { always { archiveArtifacts artifacts: 'trivy-image.txt', onlyIfSuccessful: false } }
+}
+
+// ---------- SBOM (CycloneDX) from the built image ----------
+stage('SBOM (CycloneDX)') {
+  steps {
+    bat """
+    docker run --rm ^
+      -v //var/run/docker.sock:/var/run/docker.sock ^
+      -v "%cd%":/out ^
+      aquasec/trivy:0.54.1 sbom devops-starter:staging ^
+      --format cyclonedx ^
+      --output /out/sbom.cdx.json
+    """
+  }
+  post { always { archiveArtifacts artifacts: 'sbom.cdx.json', onlyIfSuccessful: false } }
+}
+
 
     stage('Deploy: Staging (Compose)') {
   steps {
