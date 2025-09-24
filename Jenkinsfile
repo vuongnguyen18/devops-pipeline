@@ -30,6 +30,21 @@ pipeline {
       }
     }
 
+    stage('Code Quality (SonarQube)') {
+  steps {
+    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+      bat """
+      docker run --rm ^
+        -e SONAR_HOST_URL=http://host.docker.internal:9000 ^
+        -e SONAR_TOKEN=%SONAR_TOKEN% ^
+        -v "%cd%":/usr/src ^
+        sonarsource/sonar-scanner-cli:5
+      """
+    }
+  }
+}
+
+
     stage('Docker Build') {
       steps { bat 'docker build -t devops-starter:staging .' }
     }
