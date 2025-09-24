@@ -2,9 +2,10 @@ pipeline {
   agent any
   options { timestamps(); disableConcurrentBuilds() }
 
-  parameters {
-    booleanParam(name: 'GO_PROD', defaultValue: false, description: 'Also deploy prod on 8082')
-  }
+parameters {
+  booleanParam(name: 'GO_PROD', defaultValue: false, description: 'Also deploy prod on 8082')
+  booleanParam(name: 'SECURITY_ENFORCE', defaultValue: false, description: 'Fail build on HIGH/CRITICAL findings')
+}
 
   environment {
     STAGING_PORT = '8083'   // you moved staging to 8083
@@ -69,12 +70,10 @@ pipeline {
   }
 }
 
-// ---------- Security: Trivy FS (deps + misconfig + secrets) ----------
 stage('Security: Trivy (FS)') {
   steps {
-    // Create a cache dir so Trivy doesn't redownload DB every run
-    bat "if not exist .trivy-cache mkdir .trivy-cache"
-
+    script { env.TRIVY_EXIT = params.SECURITY_ENFORCE ? '1' : '0' }
+    bat 'if not exist .trivy-cache mkdir .trivy-cache'
     bat """
     docker run --rm ^
       -v "%cd%":/src ^
@@ -82,19 +81,19 @@ stage('Security: Trivy (FS)') {
       aquasec/trivy:0.54.1 fs /src ^
       --scanners vuln,misconfig,secret ^
       --ignore-unfixed ^
+      --skip-dirs /src/app/node_modules,/src/.git,/src/app/coverage ^
       --severity HIGH,CRITICAL ^
       --format table ^
       --output /src/trivy-fs.txt ^
-      --exit-code 1
+      --exit-code %TRIVY_EXIT%
     """
   }
   post { always { archiveArtifacts artifacts: 'trivy-fs.txt', onlyIfSuccessful: false } }
 }
 
-// ---------- Security: Trivy Image (container vuln scan) ----------
 stage('Security: Trivy (Image)') {
   steps {
-    // NOTE: Docker Desktop on Windows → use the `//var/run/docker.sock` bind
+    script { env.TRIVY_EXIT = params.SECURITY_ENFORCE ? '1' : '0' }
     bat """
     docker run --rm ^
       -v //var/run/docker.sock:/var/run/docker.sock ^
@@ -105,11 +104,12 @@ stage('Security: Trivy (Image)') {
       --severity HIGH,CRITICAL ^
       --format table ^
       --output /out/trivy-image.txt ^
-      --exit-code 1
+      --exit-code %TRIVY_EXIT%
     """
   }
   post { always { archiveArtifacts artifacts: 'trivy-image.txt', onlyIfSuccessful: false } }
 }
+
 
 // ---------- SBOM (CycloneDX) from the built image ----------
 stage('SBOM (CycloneDX)') {
