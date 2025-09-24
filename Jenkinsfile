@@ -23,11 +23,12 @@ pipeline {
     stage('Test') {
       steps { bat 'npm --prefix app test' }
       post {
-        always {
-          junit 'app\\junit.xml'
-          publishHTML(target: [reportDir: 'app\\coverage\\lcov-report', reportFiles: 'index.html', reportName: 'Coverage'])
-        }
-      }
+  always {
+    junit 'app\\junit.xml'
+    archiveArtifacts artifacts: 'app/coverage/lcov-report/**',
+                     allowEmptyArchive: true, fingerprint: true
+  }
+}
     }
 
     stage('Docker Build') {
