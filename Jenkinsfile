@@ -7,7 +7,7 @@ pipeline {
   }
 
   environment {
-    STAGING_PORT = '8081'
+    STAGING_PORT = '8083'
     PROD_PORT    = '8082'
   }
 
