@@ -118,13 +118,14 @@ stage('SBOM (CycloneDX)') {
     docker run --rm ^
       -v //var/run/docker.sock:/var/run/docker.sock ^
       -v "%cd%":/out ^
-      aquasec/trivy:0.54.1 sbom devops-starter:staging ^
+      aquasec/trivy:0.54.1 image devops-starter:staging ^
       --format cyclonedx ^
       --output /out/sbom.cdx.json
     """
   }
   post { always { archiveArtifacts artifacts: 'sbom.cdx.json', onlyIfSuccessful: false } }
 }
+
 
 
     stage('Deploy: Staging (Compose)') {
